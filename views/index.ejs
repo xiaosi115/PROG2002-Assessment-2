@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>筹款活动</title>
+    <link rel="stylesheet" href="/style.css">
+    <link href="//unpkg.com/layui@2.9.16/dist/css/layui.css" rel="stylesheet">
+    
+    <style>
+
+        .campaignCarousel-headerTitle {
+            margin: 20px 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        #fundraisersContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            font-family:whyte, Helvetica, Sans-serif
+
+        }
+        .campaign {
+            margin: 10px;
+            padding: 2px;
+            border-radius: 8px;
+            text-align: center;
+            width: calc(20%); /* 5个一行，减去间距 */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .campaign img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        .campaign-details {
+            margin-top: 10px;
+            text-align: left;
+        }
+        .buttonOutline {
+            display: block;
+            margin: 0 auto;
+            font-size: 14px;
+            font-family: whyte, Helvetica, Sans-serif;
+            border-radius: 7%;
+            height: 56px;
+            width: 256px;
+            background-color: aliceblue;
+        }
+        .layui-carousel {
+        width: 100%;
+        height: 220px; /* 设置高度 */
+        overflow: hidden; /* 隐藏溢出内容 */
+        }
+        .carousel-item {
+        position: relative; /* 使内部元素相对于该容器定位 */
+        height: 100%; /* 适应轮播容器高度 */
+        }
+        .carousel-item img {
+        position: absolute; /* 绝对定位 */
+        top: 50%;
+        left: 50%;
+        width: 100%; /* 使宽度占满 */
+        height: 100%; /* 使高度占满 */
+        object-fit: cover; /* 确保图片覆盖容器且保持比例 */
+        transform: translate(-50%, -50%); /* 居中图片 */
+        }
+        .carousel-item div {
+        position: absolute; /* 文本绝对定位 */
+        bottom: 10px; /* 向下偏移 */
+        left: 10px; /* 向左偏移 */
+        color: white; /* 文字颜色 */
+        background: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+        padding: 5px; /* 内边距 */
+        }
+            body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .footer {
+      background-color: #f8f9fa;
+      padding: 40px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .support, .links {
+      flex: 1 1 300px; /* 使每个部分有适应的宽度 */
+      margin: 10px;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .support-copy {
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    .support-socialMedia {
+      display: flex;
+      gap: 10px; /* 为社交图标之间留出间距 */
+    }
+
+    .support-socialMediaEach svg {
+      width: 24px;
+      height: 24px;
+      fill: #007bff; /* 设置社交图标颜色 */
+    }
+
+    .links-header {
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .links-link {
+      display: block;
+      margin: 5px 0;
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .links-link:hover {
+      text-decoration: underline; /* 鼠标悬停时下划线 */
+    }
+
+
+
+    </style>
+</head>
+<body>
+    <%- include("header") %> 
+    <div class="layui-carousel" id="ID-carousel-demo-1" style="width: 100%; height: 320px;">
+        <div carousel-item id="carousel-items" style="width: 100%;">
+          <!-- 动态生成的轮播项将插入这里 -->
+        </div>
+    </div>
+    
+    <p class="campaignCarousel-headerTitle t-rebrand-h3">
+        Popular Campaigns
+    </p>
+
+
+
+
+    <div id="fundraisersContainer"></div>
+    
+    <button  class="buttonOutline">
+        EXPLORE ALL CAMPAIGNS
+      </button>
+
+
+
+
+    <script>
+        // 获取活跃筹款活动数据
+        fetch('/api/fundraisers')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络错误');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const container = document.querySelector('#fundraisersContainer');
+                data.forEach(fundraiser => {
+                    const campaignDiv = document.createElement('div');
+                    campaignDiv.className = 'campaign';
+                    campaignDiv.innerHTML = `
+                    <img src="${fundraiser.img}" alt="${fundraiser.CAPTION}" style="width:312px;height:312px">
+                    <h4>${fundraiser.CAPTION}</h4>
+                    <div class="campaign-details">
+
+                        <p><strong></strong> ${fundraiser.category_name}</p>
+                        <div>Starting At</div>
+                        <div style="width: 240px; background-color: #f3f3f3; border-radius: 4px; overflow: hidden;">
+                            <div style="width: ${(fundraiser.CURRENT_FUNDING / fundraiser.TARGET_FUNDING) * 100}%; 
+                                        background-color: #4caf50; 
+                                        height: 4px;"></div>
+                        </div>
+                        <div pading-left:0px">€${fundraiser.CURRENT_FUNDING}raised||${Math.min(((fundraiser.CURRENT_FUNDING / fundraiser.TARGET_FUNDING) * 100).toFixed(2), 100)}% funded</div>
+                        <div>fundraiser:<strong>${fundraiser.ORGANIZER}</strong> from<strong>${fundraiser.CITY}</strong>   <strong>${fundraiser.ACTIVE ? 'active' : 'suspend'}</strong>   now </div>
+                    </div>
+                `;
+                    container.appendChild(campaignDiv);
+                });
+            })
+            .catch(error => {
+                console.error('获取筹款活动时出错:', error);
+            });
+    </script>
+    <script src="//unpkg.com/layui@2.9.16/dist/layui.js"></script> 
+<script>
+layui.use(function(){
+  var carousel = layui.carousel;
+
+  // 从 API 获取数据
+  fetch('/api/fundraisers')
+    .then(response => response.json())
+    .then(data => {
+      const carouselItems = document.getElementById('carousel-items');
+      
+      // 生成轮播项
+      data.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'carousel-item';
+        itemDiv.innerHTML = `
+          <img src="${item.img}" alt="${item.CAPTION}">
+          <div>
+            <h3>${item.CAPTION}</h3>
+            <p>目标资金: $${item.TARGET_FUNDING}</p>
+            <p>当前资金: $${item.CURRENT_FUNDING}</p>
+          </div>
+        `;
+        carouselItems.appendChild(itemDiv);
+      });
+
+      // 渲染轮播
+      carousel.render({
+        elem: '#ID-carousel-demo-1',
+        interval: 3000,
+        anim: 'fade',
+        width: '100%',
+        height: '420px'
+      });
+    })
+    .catch(error => console.error('Error fetching data:', error));
+});
+</script>
+</body>
+</html>

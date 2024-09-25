@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo</title>
+  <link href="layui/css/layui.css" rel="stylesheet">
+  <script src="layui/layui.js"></script>
+</head>
+<body>
+  <%- include("header") %> 
+  <div class="layui-form"> 
+    <div class="layui-form-item" style="margin-top: 16px; margin-left: 40%;">
+      <div class="layui-input-group">
+        <div>
+          <input type="text" placeholder="Search crowdfunding..." class="layui-input" style="float: left;">
+        </div>
+        <button type="submit" class="layui-btn" lay-submit lay-filter="demo1" style="float: left;">
+          <i class="layui-icon layui-icon-search"></i>Submit Now
+        </button>
+        <button type="button" class="layui-btn layui-btn-danger" style="float: left; margin-left: 10px;" onclick="clearCheckboxes()">Clear</button>
+      </div>
+    </div>
+    <hr style="margin:16px 0;">
+    <form class="layui-form" action="">
+      <div class="layui-form-item" style="margin-left: 20%;">
+        <div class="layui-inline" style="float: left;">
+          <label class="layui-form-label">ORGANIZER:</label>
+          <div class="layui-input-inline">
+            <select name="ORGANIZER">
+              <option value=""> </option>
+              <option value="Jackson">Jackson</option>
+              <option value="Maria">Maria</option>
+              <option value="Tom">Tom</option>
+              <option value="Sarah">Sarah</option>
+              <option value="Alex">Alex</option>
+            </select>
+          </div>
+        </div>
+        <div class="layui-inline" style="float: left;">
+          <label class="layui-form-label">CATEGORY:</label>
+          <div class="layui-input-inline">
+            <select name="CATEGORY">
+              <option value=""> </option>
+              <option value="Medical">Medical</option>
+              <option value="Education">Education</option>
+              <option value="Social Impact">Social Impact</option>
+            </select>
+          </div>
+        </div>
+        <div class="layui-inline" style="float: left;">
+          <label class="layui-form-label">CITY:</label>
+          <div class="layui-input-inline">
+            <select name="CITY">
+              <option value=""> </option>
+              <option value="Byron Bay">Byron Bay</option>
+              <option value="Sydney">Sydney</option>
+              <option value="Melbourne">Melbourne</option>
+              <option value="Brisbane">Brisbane</option>
+              <option value="Perth">Perth</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </form>
+    <hr style="margin:16px 0;">
+    <div id="fundraisersContainer"></div>
+  </div>
+
+
+  
+  <script>
+    layui.use(['form', 'laydate', 'util'], function() {
+      var form = layui.form;
+      var layer = layui.layer;
+      var laydate = layui.laydate;
+      var util = layui.util;
+
+      // Custom validation rules
+      form.verify({
+        pass: function(value) {
+          if (!/(.+){6,12}$/.test(value)) {
+            return 'Password must be 6 to 12 characters';
+          }
+        }
+      });
+
+      // Submit event
+      form.on('submit(demo1)', function(data) {
+        var field = data.field; // Get form field values
+        var searchInput = document.querySelector('input[placeholder="Search crowdfunding..."]').value; // Get search box value
+
+        // Combine form data and search input
+        var combinedData = {
+            ...field,
+            search: searchInput
+        };
+
+        // Convert combined data to query string format
+        var queryString = new URLSearchParams(combinedData).toString();
+
+        // Send combined data to the backend
+        fetch(`/api/your-endpoint?${queryString}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const container = document.querySelector('#fundraisersContainer');
+            container.innerHTML = ''; // Clear previous content
+
+            // Check if returned data is empty
+            if (data.length === 0) {
+                // Show error message
+                layer.msg('No fundraisers found', { icon: 5, time: 3000 }); // 5 indicates an error icon
+                const errorMessage = document.createElement('div');
+                errorMessage.innerHTML = '<strong style="color: red;">No fundraisers found</strong>';
+                container.appendChild(errorMessage);
+                return;
+            }
+
+            // Process and display data when there is data
+            data.forEach(fundraiser => {
+                const campaignDiv = document.createElement('div');
+                campaignDiv.className = 'campaign';
+                campaignDiv.style.width = '23%'; // Control the width of each block
+                campaignDiv.style.margin = '1%'; // Control the margin of each block
+                campaignDiv.style.float = 'left'; // Allow the block to float
+                campaignDiv.style.position = 'relative'; // Set positioning for images
+
+                // Create clickable area, link to corresponding page
+                campaignDiv.innerHTML = `
+                    <a href="/person?organizer=${encodeURIComponent(fundraiser.ORGANIZER)}&CITY=${encodeURIComponent(fundraiser.CITY)}&CAPTION=${encodeURIComponent(fundraiser.CAPTION)}&img=${encodeURIComponent(fundraiser.img)}" style="display: block; height: 100%;">
+                        <img src="${fundraiser.img}" alt="${fundraiser.CAPTION}" style="width: 312px; height: 312px;">
+                        <h4>${fundraiser.CAPTION}</h4>
+                    </a>
+                    <div class="campaign-details">
+                        <p><strong></strong> ${fundraiser.category_name}</p>
+                        <div>Starting At</div>
+                        <div style="width: 240px; background-color: #f3f3f3; border-radius: 4px; overflow: hidden;">
+                            <div style="width: ${(fundraiser.CURRENT_FUNDING / fundraiser.TARGET_FUNDING) * 100}%; 
+                                        background-color: #4caf50; 
+                                        height: 4px;"></div>
+                        </div>
+                        <div>€${fundraiser.CURRENT_FUNDING} raised || ${Math.min(((fundraiser.CURRENT_FUNDING / fundraiser.TARGET_FUNDING) * 100).toFixed(2), 100)}% funded</div>
+                        <div>Fundraiser: <strong>${fundraiser.ORGANIZER}</strong> from <strong>${fundraiser.CITY}</strong> <strong>${fundraiser.ACTIVE ? 'active' : 'suspended'}</strong> now</div>
+                    </div>
+                `;
+                container.appendChild(campaignDiv);
+            });
+
+            // Clear float
+            const clearDiv = document.createElement('div');
+            clearDiv.style.clear = 'both';
+            container.appendChild(clearDiv);
+        })
+        .catch(error => {
+            console.error('Error fetching fundraising events:', error);
+        });
+
+        return false; // Prevent default form redirection
+      });
+
+      // Clear checkboxes and search box
+      window.clearCheckboxes = function() {
+        // Clear search box
+        document.querySelector('input[placeholder="Search crowdfunding..."]').value = '';
+
+        // Reset all dropdowns
+        document.querySelectorAll('select').forEach(select => {
+            select.selectedIndex = 0; // Directly set the dropdown value to empty
+        });
+      };
+
+      // Date
+      laydate.render({
+        elem: '#date'
+      });
+    });
+  </script>
+</body>
+</html>

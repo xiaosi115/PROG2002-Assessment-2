@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo</title>
+
+  <link href="layui/css/layui.css" rel="stylesheet">
+  <script src="layui/layui.js"></script>
+  <style>
+    .title {
+      margin-left: 10%;
+      margin-top: 120px;
+    }
+    .img {
+      margin-left: 10%;
+      margin-top: 10px;
+      border-radius: 20%;
+      float: left;
+      margin-bottom: 20px; /* Add bottom margin to increase distance from progress bar */
+    }
+    .img img {
+      width: 100%; /* Make the image fit the width of the div */
+      height: auto; /* Maintain image aspect ratio */
+      border-radius: 4%; /* Make the image itself have rounded corners */
+    }
+    .progress-container {
+      padding-left: 60%; /* Left margin */
+    }
+    .img-container {
+      display: flex; /* Use Flexbox layout */
+      align-items: flex-start; /* Align to the top */
+      margin-left: 10%;
+      margin-top: 10px;
+      margin-bottom: 20px; /* Increase distance from progress bar */
+    }
+    .icon {
+      font-size: 30px; /* Set icon size */
+      color: #1E9FFF; /* Icon color */
+      margin-right: 10px; /* Space between icon and text */
+      display: flex; /* Align icon and text vertically */
+      flex-direction: column; /* Arrange vertically */
+      justify-content: center; /* Center vertically */
+    }
+    .text {
+      font-size: 20px;
+      margin-top: 5px; /* Adjust top margin for text */
+    }
+  </style>
+</head>
+<body>
+  <%- include("header") %> 
+  <div class="title">
+    <h1>Fundraiser Details</h1>
+  </div>
+  <div class="img">
+    <img src="<%= fundraiser.img %>" alt="<%= fundraiser.CAPTION %>" style="width: 720px; height: 405px;">
+    <div style="margin-top: 10px;">
+      <i class="layui-icon layui-icon-username" style="font-size: 30px; color: #1E9FFF;"></i> 
+      <%= fundraiser.ORGANIZER %> is organizing this fundraiser from <%= fundraiser.CITY %>.
+    </div>
+    <hr>
+  </div>
+
+  <div class="progress-container">
+    <div style="display: flex; align-items: flex-end; margin-bottom: 10px;">
+      <h2 style="margin: 0;">£<%= fundraiser.CURRENT_FUNDING %></h2>
+      <span style="margin-left: 5px;">raised of £<%= fundraiser.TARGET_FUNDING %> goal</span>
+    </div>
+    
+    <div style="width: 240px; background-color: #f3f3f3; border-radius: 4px; overflow: hidden;">
+      <div style="width: <%= (fundraiser.CURRENT_FUNDING / fundraiser.TARGET_FUNDING) * 100 %>%; 
+                  background-color: #4caf50; 
+                  height: 10px;"></div>
+    </div>
+
+    <div style="margin-top: 10px;">
+      869 donations
+    </div>
+    <div style="width: 260px; border-radius: 10%;">
+      <button type="button" class="layui-btn layui-bg-orange layui-btn-fluid layui-btn-radius">Share</button>
+    </div>
+    <div style="width: 260px; border-radius: 10%; margin-top: 5px;">
+      <button type="button" class="layui-btn layui-btn-warm layui-btn-fluid layui-btn-radius" id="donateBtn">Donate now</button>
+    </div>
+    <div style="margin-top: 5px;font-size: 20px;">
+      <i class="layui-icon layui-icon-share" style="font-size: 30px; color: #1E9FFF;"></i> 705 people just donated
+    </div>
+    <div style="margin-top: 5px;font-size: 20px;">
+      <i class="layui-icon layui-icon-water" style="font-size: 30px; color: #1E9FFF;"></i> £10·Recent donation
+    </div>
+    <div style="margin-top: 5px;font-size: 20px;">
+      <i class="layui-icon layui-icon-water" style="font-size: 30px; color: #1E9FFF;"></i> £5000·Top donation
+    </div>
+    <div style="margin-top: 5px;font-size: 20px;">
+      <i class="layui-icon layui-icon-water" style="font-size: 30px; color: #1E9FFF;"></i> £50·First donation
+    </div>   
+  </div>
+
+  <script>
+    document.getElementById('donateBtn').addEventListener('click', function() {
+      layer.alert('This feature is under construction', {
+        title: 'Notice',
+        icon: 0 // 0 indicates information icon
+      });
+    });
+  </script>
+
+</body>
+</html>

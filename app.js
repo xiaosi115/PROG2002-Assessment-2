@@ -1,14 +1,14 @@
 const express = require('express');
 const path = require('path');
-const axios = require('axios'); // 用于调用API
+const axios = require('axios'); // For calling APIs
 const app = express();
-const db = require('./crowdfunding_db'); // 引入数据库连接
+const db = require('./crowdfunding_db'); // Import database connection
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 模拟的API数据（替代实际API调用）
+// Simulated API data (replacing actual API calls)
 
-// 1. 获取所有活跃筹款活动及其类别
+// 1. Get all active fundraisers and their categories
 app.get('/api/fundraisers', (req, res) => {
     const query = `
         SELECT f.*, c.NAME AS category_name
@@ -19,27 +19,27 @@ app.get('/api/fundraisers', (req, res) => {
 
     db.query(query, (err, results) => {
         if (err) {
-            return res.status(500).json({ error: '数据库查询错误' });
+            return res.status(500).json({ error: 'Database query error' });
         }
         res.json(results);
     });
 });
 
-// 2. 获取所有类别
+// 2. Get all categories
 app.get('/api/categories', (req, res) => {
     const query = 'SELECT * FROM CATEGORY';
 
     db.query(query, (err, results) => {
         if (err) {
-            return res.status(500).json({ error: '数据库查询错误' });
+            return res.status(500).json({ error: 'Database query error' });
         }
         res.json(results);
     });
 });
 
-// 3. 根据条件获取活跃筹款活动及其类别
+// 3. Get active fundraisers and their categories based on conditions
 app.get('/api/fundraisers/search', (req, res) => {
-    const { categoryId } = req.query; // 从查询参数中获取类别 ID
+    const { categoryId } = req.query; // Get category ID from query parameters
     let query = `
         SELECT f.*, c.NAME AS category_name
         FROM FUNDRAISER f
@@ -53,13 +53,13 @@ app.get('/api/fundraisers/search', (req, res) => {
 
     db.query(query, [categoryId], (err, results) => {
         if (err) {
-            return res.status(500).json({ error: '数据库查询错误' });
+            return res.status(500).json({ error: 'Database query error' });
         }
         res.json(results);
     });
 });
 
-// 4. 根据 ID 获取筹款活动详情
+// 4. Get fundraiser details by ID
 app.get('/api/fundraiser/:id', (req, res) => {
     const fundraiserId = req.params.id;
     const query = `
@@ -71,68 +71,119 @@ app.get('/api/fundraiser/:id', (req, res) => {
 
     db.query(query, [fundraiserId], (err, results) => {
         if (err) {
-            return res.status(500).json({ error: '数据库查询错误' });
+            return res.status(500).json({ error: 'Database query error' });
         }
         if (results.length === 0) {
-            return res.status(404).json({ error: '筹款活动未找到' });
+            return res.status(404).json({ error: 'Fundraiser not found' });
         }
-        res.json(results[0]); // 返回单个筹款活动的详情
+        res.json(results[0]); // Return details of a single fundraiser
     });
 });
 
+// Declare dynamic routes
 
-//声明动态路由
-
-app.get('/about', (req, res) => {
-    res.render('about', { title: '关于我们' });
+app.get('/Search', (req, res) => {
+    res.render('Search', { title: 'About Us' });
 });
 
-app.get("/articles", function(req, res){
-    var articles = [
-            {title: "Man Discovers Different Opinion", author: "Reginald", date: "9/2/45"},
-            {title: "Tigers Aren't Great Pets", author: "Simon", date: "4/13/95"},
-            {title: "Eating Cake for Breakfast", author: "Katie", date: "8/20/13"}
-        ];
-    res.render("articles.ejs", {articles: articles})
-});
+app.get('/person', (req, res) => {
+    const { organizer, CITY, CAPTION, img } = req.query; // Get query parameters
 
+    // Validate parameters
+    if (!organizer) {
+        return res.status(400).json({ error: 'Organizer is required' });
+    }
+    if (!CITY) {
+        return res.status(400).json({ error: 'City is required' });
+    }
+    if (!CAPTION) {
+        return res.status(400).json({ error: 'Caption is required' });
+    }
+    if (!img) {
+        return res.status(400).json({ error: 'Image URL is required' });
+    }
 
-app.post('/api/your-endpoint', (req, res) => {
-    console.log(req);
-    const { search } = req.body; // Retrieve search input
-    const query = 'SELECT * FROM fundraisers WHERE title LIKE ?'; // Example query
+    // Construct query statement
+    const query = 'SELECT * FROM fundraiser WHERE ORGANIZER = ? AND CITY = ? AND CAPTION = ?';
+    const queryParams = [organizer, CITY, CAPTION];
 
-    db.query(query, [`%${search}%`], (error, results) => {
+    // Execute query
+    db.query(query, queryParams, (error, results) => {
         if (error) {
             return res.status(500).json({ error: 'Database query failed' });
         }
-        res.json(results); // Return results to the frontend
+
+        // If no fundraiser found, return 404
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'No fundraiser found for this organizer' });
+        }
+
+        // Render page, assuming using EJS template engine
+        res.render('Fundraiser', { fundraiser: results[0] }); // Return details of the first fundraiser
     });
 });
+
+// Declare another endpoint for querying fundraisers based on various parameters
+app.get('/api/your-endpoint', (req, res) => {
+    const { ORGANIZER, CATEGORY, CITY, search } = req.query; // Get query parameters
+
+    // Base query statement
+    let baseQuery = 'SELECT * FROM fundraiser';
+    let conditions = [];
+    let queryParams = [];
+
+    // Dynamically add query conditions based on existing parameters
+    if (search) {
+        conditions.push('caption LIKE ?');
+        queryParams.push(`%${search}%`);
+    }
+
+    if (ORGANIZER) {
+        conditions.push('ORGANIZER = ?');
+        queryParams.push(ORGANIZER);
+    }
+
+    if (CATEGORY) {
+        conditions.push('CATEGORY_ID = (SELECT CATEGORY_ID FROM category WHERE NAME = ?)');
+        queryParams.push(CATEGORY);
+    }
+
+    if (CITY) {
+        conditions.push('CITY = ?');
+        queryParams.push(CITY);
+    }
+
+    // If there are conditions, append WHERE clause
+    if (conditions.length > 0) {
+        baseQuery += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    // Execute query
+    db.query(baseQuery, queryParams, (error, results) => {
+        if (error) {
+            return res.status(500).json({ error: 'Database query failed' });
+        }
+        res.json(results); // Return query results to frontend
+    });
+});
+
+
+
 
 
 
 app.get('/', (req, res) => {
     const query = 'SELECT * FROM FUNDRAISER';
-        var articles = [
-            {title: "Man Discovers Different Opinion", author: "Reginald", date: "9/2/45"},
-            {title: "Tigers Aren't Great Pets", author: "Simon", date: "4/13/95"},
-            {title: "Eating Cake for Breakfast", author: "Katie", date: "8/20/13"}
-        ];
 
     db.query(query, (err, results) => {
         if (err) {
-            return res.status(500).send('数据库查询错误');
+            return res.status(500).send('Database query error');
         }
-        console.log('查询结果:', results); // 检查查询结果
+        console.log('Query results:', results); // Check query results
         res.render('index.ejs', { fundraisers: results });
     });
 });
 
-
-
-
 app.listen(3000, () => {
-    console.log('服务器在3000端口运行');
+    console.log('Server running on port 3000');
 });
-

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fundraising Events</title>
+    <link rel="stylesheet" href="/style.css">
+    <link href="layui/css/layui.css" rel="stylesheet">
+    <script src="layui/layui.js"></script>
+    
+    <style>
+        .campaignCarousel-headerTitle {
+            margin: 20px 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        #fundraisersContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            font-family: whyte, Helvetica, Sans-serif;
+        }
+        .campaign {
+            margin: 10px;
+            padding: 2px;
+            border-radius: 8px;
+            text-align: center;
+            width: calc(20%); /* 5 items per row, minus spacing */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .campaign img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        .campaign-details {
+            margin-top: 10px;
+            text-align: left;
+        }
+        .buttonOutline {
+            display: block;
+            margin: 0 auto;
+            font-size: 14px;
+            font-family: whyte, Helvetica, Sans-serif;
+            border-radius: 7%;
+            height: 56px;
+            width: 256px;
+            background-color: aliceblue;
+        }
+        .layui-carousel {
+            width: 100%;
+            height: 220px; /* Set height */
+            overflow: hidden; /* Hide overflow content */
+        }
+        .carousel-item {
+            position: relative; /* Position internal elements relative to this container */
+            height: 100%; /* Adapt to carousel container height */
+        }
+        .carousel-item img {
+            position: absolute; /* Absolute positioning */
+            top: 50%;
+            left: 50%;
+            width: 100%; /* Fill width */
+            height: 100%; /* Fill height */
+            object-fit: cover; /* Ensure image covers container while maintaining aspect ratio */
+            transform: translate(-50%, -50%); /* Center the image */
+        }
+        .carousel-item div {
+            position: absolute; /* Absolute positioning for text */
+            bottom: 10px; /* Offset downwards */
+            left: 10px; /* Offset to the left */
+            color: white; /* Text color */
+            background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+            padding: 5px; /* Padding */
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            padding: 40px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .support, .links {
+            flex: 1 1 300px; /* Allow each section to have adaptive width */
+            margin: 10px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .support-copy {
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .support-socialMedia {
+            display: flex;
+            gap: 10px; /* Provide space between social icons */
+        }
+
+        .support-socialMediaEach svg {
+            width: 24px;
+            height: 24px;
+            fill: #007bff; /* Set color for social icons */
+        }
+
+        .links-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .links-link {
+            display: block;
+            margin: 5px 0;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .links-link:hover {
+            text-decoration: underline; /* Underline on hover */
+        }
+    </style>
+</head>
+<body>
+    <ul class="layui-nav">
+        <li class="layui-nav-item layui-this"><a href="/">Home</a></li>
+        <li class="layui-nav-item"><a href="/Search">Search</a></li>
+      </ul>
+    <div class="layui-carousel" id="ID-carousel-demo-1" style="width: 100%; height: 320px;">
+        <div carousel-item id="carousel-items" style="width: 100%;">
+          <!-- Dynamic carousel items will be inserted here -->
+        </div>
+    </div>
+    
+    <p class="campaignCarousel-headerTitle t-rebrand-h3">
+        Popular Campaigns
+    </p>
+
+    <div id="fundraisersContainer"></div>
+    
+    <button class="buttonOutline" id="exploreButton">
+      EXPLORE ALL CAMPAIGNS
+    </button>
+  
+    <script>
+        document.getElementById('exploreButton').addEventListener('click', function() {
+            window.location.href = '/Search'; // Redirect to /Search page
+        });
+    </script>
+  
+    <script>
+        // Fetch active fundraising event data
+        fetch('/api/fundraisers')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network error');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const container = document.querySelector('#fundraisersContainer');
+                data.forEach(fundraiser => {
+                    const campaignDiv = document.createElement('div');
+                    campaignDiv.className = 'campaign';
+                    campaignDiv.innerHTML = `
+                    <a href="/Fundraiser?organizer=${encodeURIComponent(fundraiser.ORGANIZER)}&CITY=${encodeURIComponent(fundraiser.CITY)}&CAPTION=${encodeURIComponent(fundraiser.CAPTION)}&img=${encodeURIComponent(fundraiser.img)}"> <!-- Click image to redirect to specified page -->
+                        <img src="${fundraiser.img}" alt="${fundraiser.CAPTION}" style="width:312px;height:312px">
+                    </a>
+                    <h4>${fundraiser.CAPTION}</h4>
+                    <div class="campaign-details">
+                        <p><strong></strong> ${fundraiser.category_name}</p>
+                        <div>Starting At</div>
+                        <div style="width: 240px; background-color: #f3f3f3; border-radius: 4px; overflow: hidden;">
+                            <div style="width: ${(fundraiser.CURRENT_FUNDING / fundraiser.TARGET_FUNDING) * 100}%; 
+                                        background-color: #4caf50; 
+                                        height: 4px;"></div>
+                        </div>
+                        <div>€${fundraiser.CURRENT_FUNDING} raised || ${Math.min(((fundraiser.CURRENT_FUNDING / fundraiser.TARGET_FUNDING) * 100).toFixed(2), 100)}% funded</div>
+                        <div>Fundraiser: <strong>${fundraiser.ORGANIZER}</strong> from <strong>${fundraiser.CITY}</strong> <strong>${fundraiser.ACTIVE ? 'active' : 'suspended'}</strong> now</div>
+                    </div>
+                `;
+                    container.appendChild(campaignDiv);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching fundraising events:', error);
+            });
+    </script>
+
+
+    <script>
+        layui.use(function(){
+            var carousel = layui.carousel;
+
+            // Fetch data from API
+            fetch('/api/fundraisers')
+                .then(response => response.json())
+                .then(data => {
+                    const carouselItems = document.getElementById('carousel-items');
+                    
+                    // Generate carousel items
+                    data.forEach(item => {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'carousel-item';
+                        itemDiv.innerHTML = `
+                          <a href="/Fundraiser?organizer=${encodeURIComponent(item.ORGANIZER)}&CITY=${encodeURIComponent(item.CITY)}&CAPTION=${encodeURIComponent(item.CAPTION)}&img=${encodeURIComponent(item.img)}"> <!-- Click carousel image to redirect to specified page -->
+                              <img src="${item.img}" alt="${item.CAPTION}">
+                          </a>
+                          <div>
+                            <h3>${item.CAPTION}</h3>
+                            <p>Target Funding: €${item.TARGET_FUNDING}</p>
+                            <p>Current Funding: €${item.CURRENT_FUNDING}</p>
+                          </div>
+                        `;
+                        carouselItems.appendChild(itemDiv);
+                    });
+
+                    // Render the carousel
+                    carousel.render({
+                        elem: '#ID-carousel-demo-1',
+                        interval: 3000,
+                        anim: 'fade',
+                        width: '100%',
+                        height: '420px'
+                    });
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
+    </script>
+</body>
+</html>

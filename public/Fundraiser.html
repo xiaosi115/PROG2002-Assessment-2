@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo</title>
+
+  <link href="layui/css/layui.css" rel="stylesheet">
+  <script src="layui/layui.js"></script>
+  <style>
+    .title {
+      margin-left: 10%;
+      margin-top: 20px;
+    }
+    .img {
+      margin-left: 10%;
+      margin-top: 10px;
+      border-radius: 20%;
+      float: left;
+      margin-bottom: 20px; /* Add bottom margin to increase distance from progress bar */
+    }
+    .img img {
+      width: 100%; /* Make the image fit the width of the div */
+      height: auto; /* Maintain image aspect ratio */
+      border-radius: 4%; /* Make the image itself have rounded corners */
+    }
+    .progress-container {
+      padding-left: 60%; /* Left margin */
+    }
+    .img-container {
+      display: flex; /* Use Flexbox layout */
+      align-items: flex-start; /* Align to the top */
+      margin-left: 10%;
+      margin-top: 10px;
+      margin-bottom: 20px; /* Increase distance from progress bar */
+    }
+    .icon {
+      font-size: 30px; /* Set icon size */
+      color: #1E9FFF; /* Icon color */
+      margin-right: 10px; /* Space between icon and text */
+      display: flex; /* Align icon and text vertically */
+      flex-direction: column; /* Arrange vertically */
+      justify-content: center; /* Center vertically */
+    }
+    .text {
+      font-size: 20px;
+      margin-top: 5px; /* Adjust top margin for text */
+    }
+  </style>
+</head>
+<body>
+  <ul class="layui-nav">
+    <li class="layui-nav-item layui-this"><a href="/">Home</a></li>
+    <li class="layui-nav-item"><a href="/Search">Search</a></li>
+  </ul>
+  <div class="title">
+    <h1>Fundraiser Details</h1>
+  </div>
+  <div class="img">
+    <img src="<%= fundraiser.img %>" alt="<%= fundraiser.CAPTION %>" style="width: 720px; height: 405px;">
+    <div style="margin-top: 10px;">
+      <i class="layui-icon layui-icon-username" style="font-size: 30px; color: #1E9FFF;"></i> 
+      <%= fundraiser.ORGANIZER %> is organizing this fundraiser from <%= fundraiser.CITY %>.
+    </div>
+    <hr>
+  </div>
+
+  <div class="progress-container">
+    <!-- <div style="display: flex; align-items: flex-end; margin-bottom: 10px;">
+      <h2 style="margin: 0;">£<%= fundraiser.CURRENT_FUNDING %></h2>
+      <span style="margin-left: 5px;">raised of £<%= fundraiser.TARGET_FUNDING %> goal</span>
+    </div>
+    
+    <div style="width: 240px; background-color: #f3f3f3; border-radius: 4px; overflow: hidden;">
+      <div style="width: <%= (fundraiser.CURRENT_FUNDING / fundraiser.TARGET_FUNDING) * 100 %>%; 
+                  background-color: #4caf50; 
+                  height: 10px;"></div>
+    </div> -->
+
+    <!-- <div style="margin-top: 10px;">
+      869 donations
+    </div>
+    <div style="width: 260px; border-radius: 10%;">
+      <button type="button" class="layui-btn layui-bg-orange layui-btn-fluid layui-btn-radius">Share</button>
+    </div>
+    <div style="width: 260px; border-radius: 10%; margin-top: 5px;">
+      <button type="button" class="layui-btn layui-btn-warm layui-btn-fluid layui-btn-radius" id="donateBtn">Donate now</button>
+    </div>
+    <div style="margin-top: 5px;font-size: 20px;">
+      <i class="layui-icon layui-icon-share" style="font-size: 30px; color: #1E9FFF;"></i> 705 people just donated
+    </div>
+    <div style="margin-top: 5px;font-size: 20px;">
+      <i class="layui-icon layui-icon-water" style="font-size: 30px; color: #1E9FFF;"></i> £10·Recent donation
+    </div>
+    <div style="margin-top: 5px;font-size: 20px;">
+      <i class="layui-icon layui-icon-water" style="font-size: 30px; color: #1E9FFF;"></i> £5000·Top donation
+    </div>
+    <div style="margin-top: 5px;font-size: 20px;">
+      <i class="layui-icon layui-icon-water" style="font-size: 30px; color: #1E9FFF;"></i> £50·First donation
+    </div>   
+  </div> -->
+
+  <script>
+
+  
+// 定义参数
+const organizer = 'Maria';
+const city = 'Melbourne';
+const caption = 'Education for Underprivileged Kids';
+const img = 'https://c1.iggcdn.com/indiegogo-media-prod-cld/image/upload/c_fill,g_center,q_auto,f_auto,h_312,w_312/lculx529mpmnhm86xyme';
+
+// 创建 URL
+const url = `/person?organizer=${encodeURIComponent(organizer)}&CITY=${encodeURIComponent(city)}&CAPTION=${encodeURIComponent(caption)}&img=${encodeURIComponent(img)}`;
+
+// 发送 GET 请求
+fetch(url)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(data => {
+      // 假设返回的数据是一个对象数组，这里取第一个元素
+      const fundraiser = data[0];
+
+      // 更新 img 标签
+      const imgElement = document.querySelector('img'); // 选择 img 标签
+      imgElement.src = fundraiser.img; // 设置 src
+      imgElement.alt = fundraiser.CAPTION; // 设置 alt
+      const infoElement = document.querySelector('.layui-icon-username').parentNode; // 获取包含信息的父元素
+        infoElement.innerHTML = `
+            <i class="layui-icon layui-icon-username" style="font-size: 30px; color: #1E9FFF;"></i> 
+            ${fundraiser.ORGANIZER} is organizing this fundraiser from ${fundraiser.CITY}.
+        `;
+      // 更新筹款信息
+      const fundingDiv = document.querySelector('.progress-container'); // 添加类名以便选择
+        fundingDiv.innerHTML = `
+            <div style="display: flex; align-items: flex-end; margin-bottom: 10px;">
+                <h2 style="margin: 0;">£${fundraiser.CURRENT_FUNDING}</h2>
+                <span style="margin-left: 5px;">raised of £${fundraiser.TARGET_FUNDING} goal</span>
+            </div>
+            <div style="display: flex;width: 240px; background-color: #f3f3f3; border-radius: 4px; overflow: hidden;">
+                <div style="width: ${(fundraiser.CURRENT_FUNDING / fundraiser.TARGET_FUNDING) * 100}%; 
+                            background-color: #4caf50; 
+                            height: 10px;"></div>
+            </div>
+            <div style="display: flex;margin-top: 10px;">
+              869 donations
+            </div>
+            <div style="display: flex;width: 260px; border-radius: 10%;margin-top:20px">
+              <button type="button"  class="layui-btn layui-bg-orange layui-btn-fluid layui-btn-radius">Share</button>
+            </div>
+            <div style="display: flex;width: 260px; border-radius: 10%; margin-top: 5px;">
+              <button type="button" class="layui-btn layui-btn-warm layui-btn-fluid layui-btn-radius" id="donateBtn">Donate now</button>
+            </div>
+            <div style="display: flex;margin-top: 5px;font-size: 20px;">
+              <i class="layui-icon layui-icon-share" style="font-size: 30px; color: #1E9FFF;"></i> &nbsp705 people just donated
+            </div>
+            <div style="display: flex;margin-top: 5px;font-size: 20px;">
+              <i class="layui-icon layui-icon-water" style="font-size: 30px; color: #1E9FFF;"></i> &nbsp£10·Recent donation
+            </div>
+            <div style="display: flex;margin-top: 5px;font-size: 20px;">
+              <i class="layui-icon layui-icon-water" style="font-size: 30px; color: #1E9FFF;"></i> &nbsp£5000·Top donation
+            </div>
+            <div style="display: flex;margin-top: 5px;font-size: 20px;">
+              <i class="layui-icon layui-icon-water" style="justify-content: center;font-size: 30px; color: #1E9FFF;"></i> &nbsp£50·First donation
+            </div>   
+        `;
+        document.getElementById('donateBtn').addEventListener('click', function() {
+        layer.alert('This feature is under construction', {
+          title: 'Notice',
+          icon: 0 // 0 indicates information icon
+        });
+      });
+    })
+    .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+    });
+
+
+
+  </script>
+<script>
+
+</script>
+
+
+</body>
+
+</html>
